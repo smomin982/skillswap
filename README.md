@@ -168,8 +168,6 @@ MIT License - feel free to use this project for your portfolio!
 
 ## 👨‍💻 Author
 
-Your Name - [GitHub](https://github.com/yourusername) | [LinkedIn](https://linkedin.com/in/yourprofile)
+Saad Momin - [GitHub](https://github.com/smomin982) | [LinkedIn]([https://linkedin.com/in/yourprofile](https://www.linkedin.com/in/saad-momin-86128a183/))
 
 ---
-
-**Note**: This project is designed to showcase full-stack development skills and is part of a professional portfolio.
