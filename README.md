@@ -164,7 +164,7 @@ This is a portfolio project, but contributions are welcome! Please:
 
 ## 📄 License
 
-MIT License - feel free to use this project for your portfolio!
+MIT
 
 ## 👨‍💻 Author
 
