@@ -20,6 +20,7 @@ import Browse from './pages/Browse';
 import Messages from './pages/Messages';
 import NotFound from './pages/NotFound';
 import AuthCallback from './pages/AuthCallback';
+import SessionRoom from './pages/SessionRoom';
 
 // Hooks
 import { useSocket } from './hooks/useSocket';
@@ -102,6 +103,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Messages />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sessions/:id/room"
+                element={
+                  <ProtectedRoute>
+                    <SessionRoom />
                   </ProtectedRoute>
                 }
               />
