@@ -126,6 +126,14 @@ const googleAuth = passport.authenticate('google', {
   scope: ['profile', 'email'],
 });
 
+// Initiate Google OAuth specifically for Calendar sync
+const googleCalendarAuth = passport.authenticate('google', {
+  scope: ['profile', 'email', 'https://www.googleapis.com/auth/calendar.events'],
+  accessType: 'offline',
+  prompt: 'consent',
+  state: 'calendar',
+});
+
 /**
  * @desc    Google OAuth callback
  * @route   GET /api/auth/google/callback
@@ -144,11 +152,34 @@ const googleAuthCallback = (req, res, next) => {
   })(req, res, next);
 };
 
+/**
+ * @desc    Disconnect Google Calendar integration
+ * @route   POST /api/auth/google/calendar/disconnect
+ * @access  Private
+ */
+const disconnectGoogleCalendar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    user.google = user.google || {};
+    user.google.refreshToken = undefined;
+    user.google.calendarSyncEnabled = false;
+    await user.save();
+    res.json({ message: 'Google Calendar disconnected' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
   getMe,
   updatePassword,
   googleAuth,
+  googleCalendarAuth,
   googleAuthCallback,
+  disconnectGoogleCalendar,
 };

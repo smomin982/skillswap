@@ -1,6 +1,7 @@
 const Session = require('../models/Session');
 const Exchange = require('../models/Exchange');
 const { sendSessionReminderEmail } = require('../utils/emailService');
+const { isSlotAvailable } = require('../utils/availability');
 
 /**
  * @desc    Create session
@@ -32,6 +33,30 @@ const createSession = async (req, res) => {
       exchange.recipient.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Conflict detection: prevent double-booking and ensure teacher availability
+    const startDate = new Date(scheduledDate);
+
+    // Check teacher availability
+    const teacherAvailable = await isSlotAvailable(teacherId, startDate, duration || 60);
+    if (!teacherAvailable) {
+      return res.status(400).json({ message: 'Selected time is not available for the teacher' });
+    }
+
+    // Check learner double booking
+    const learnerConflicts = await Session.findOne({
+      status: 'scheduled',
+      learner: learnerId,
+      $expr: {
+        $and: [
+          { $lt: ['$scheduledDate', new Date(startDate.getTime() + (duration || 60) * 60000)] },
+          { $gt: [{ $add: ['$scheduledDate', { $multiply: ['$duration', 60000] }] }, startDate] },
+        ],
+      },
+    });
+    if (learnerConflicts) {
+      return res.status(400).json({ message: 'Selected time conflicts with learner\'s schedule' });
     }
 
     const session = await Session.create({
@@ -156,11 +181,40 @@ const updateSession = async (req, res) => {
 
     // Update allowed fields
     const allowedUpdates = ['scheduledDate', 'duration', 'type', 'location', 'agenda', 'status'];
+    let willCheckConflicts = false;
     allowedUpdates.forEach((field) => {
-      if (req.body[field]) {
+      if (req.body[field] !== undefined) {
+        if (field === 'scheduledDate' || field === 'duration') willCheckConflicts = true;
         session[field] = req.body[field];
       }
     });
+
+    // If time changed, ensure availability and no conflicts
+    if (willCheckConflicts) {
+      const startDate = new Date(session.scheduledDate);
+      const dur = session.duration || 60;
+
+      const teacherAvailable = await isSlotAvailable(session.teacher, startDate, dur);
+      if (!teacherAvailable) {
+        return res.status(400).json({ message: 'Selected time is not available for the teacher' });
+      }
+
+      // Learner conflicts
+      const learnerConflict = await Session.findOne({
+        _id: { $ne: session._id },
+        status: 'scheduled',
+        learner: session.learner,
+        $expr: {
+          $and: [
+            { $lt: ['$scheduledDate', new Date(startDate.getTime() + dur * 60000)] },
+            { $gt: [{ $add: ['$scheduledDate', { $multiply: ['$duration', 60000] }] }, startDate] },
+          ],
+        },
+      });
+      if (learnerConflict) {
+        return res.status(400).json({ message: 'Selected time conflicts with learner\'s schedule' });
+      }
+    }
 
     await session.save();
 
@@ -259,12 +313,13 @@ const cancelSession = async (req, res) => {
  */
 const sendReminders = async (req, res) => {
   try {
-    // Find sessions scheduled in the next 24 hours that haven't been reminded
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // Find sessions scheduled in the configured reminder window that haven't been reminded
+    const reminderHours = parseInt(process.env.SESSION_REMINDER_HOURS || '24', 10);
+    const windowEnd = new Date(Date.now() + reminderHours * 60 * 60 * 1000);
     const now = new Date();
 
     const sessions = await Session.find({
-      scheduledDate: { $gte: now, $lte: tomorrow },
+      scheduledDate: { $gte: now, $lte: windowEnd },
       status: 'scheduled',
       'reminder.sent': false,
     })
