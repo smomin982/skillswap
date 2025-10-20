@@ -111,6 +111,12 @@ const userSchema = new mongoose.Schema(
         ref: 'Achievement',
       },
     ],
+    google: {
+      refreshToken: { type: String, select: false },
+      scopes: [{ type: String }],
+      calendarSyncEnabled: { type: Boolean, default: false },
+      lastSync: Date,
+    },
     isActive: {
       type: Boolean,
       default: true,

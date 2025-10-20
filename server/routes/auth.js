@@ -7,7 +7,9 @@ const {
   getMe,
   updatePassword,
   googleAuth,
+  googleCalendarAuth,
   googleAuthCallback,
+  disconnectGoogleCalendar,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 const validate = require('../middleware/validation');
@@ -157,6 +159,18 @@ router.get('/google', googleAuth);
 
 /**
  * @swagger
+ * /auth/google/calendar:
+ *   get:
+ *     summary: Connect Google Calendar (OAuth)
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirect to Google OAuth for Calendar
+ */
+router.get('/google/calendar', googleCalendarAuth);
+
+/**
+ * @swagger
  * /auth/google/callback:
  *   get:
  *     summary: Google OAuth callback
@@ -166,5 +180,19 @@ router.get('/google', googleAuth);
  *         description: Redirect to client with token
  */
 router.get('/google/callback', googleAuthCallback);
+
+/**
+ * @swagger
+ * /auth/google/calendar/disconnect:
+ *   post:
+ *     summary: Disconnect Google Calendar
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Disconnected
+ */
+router.post('/google/calendar/disconnect', protect, disconnectGoogleCalendar);
 
 module.exports = router;

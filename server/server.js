@@ -20,6 +20,7 @@ const exchangeRoutes = require('./routes/exchanges');
 const sessionRoutes = require('./routes/sessions');
 const messageRoutes = require('./routes/messages');
 const reviewRoutes = require('./routes/reviews');
+const availabilityRoutes = require('./routes/availability');
 
 // Initialize Express app
 const app = express();
@@ -71,6 +72,7 @@ app.use('/api/exchanges', exchangeRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 // 404 handler
 app.use((req, res) => {
