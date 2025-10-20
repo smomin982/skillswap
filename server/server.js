@@ -94,12 +94,14 @@ const io = initializeSocket(server);
 // Socket.io event handlers
 const messageHandler = require('./sockets/messageHandler');
 const notificationHandler = require('./sockets/notificationHandler');
+const sessionVideoHandler = require('./sockets/sessionVideoHandler');
 
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
   messageHandler(socket, io);
   notificationHandler(socket, io);
+  sessionVideoHandler(socket, io);
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);

@@ -80,5 +80,18 @@ export const ROUTES = {
   MESSAGES: '/messages',
   EXCHANGES: '/exchanges',
   SESSIONS: '/sessions',
+  SESSION_ROOM: '/sessions/:id/room',
   SETTINGS: '/settings',
 };
+
+// WebRTC ICE servers (STUN/TURN)
+export const ICE_SERVERS = (() => {
+  const servers = [{ urls: 'stun:stun.l.google.com:19302' }];
+  const turnUrl = import.meta.env.VITE_TURN_URL;
+  const turnUser = import.meta.env.VITE_TURN_USERNAME;
+  const turnCred = import.meta.env.VITE_TURN_CREDENTIAL;
+  if (turnUrl && turnUser && turnCred) {
+    servers.push({ urls: turnUrl, username: turnUser, credential: turnCred });
+  }
+  return servers;
+})();

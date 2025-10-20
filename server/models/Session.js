@@ -75,6 +75,9 @@ const sessionSchema = new mongoose.Schema(
       },
       sentAt: Date,
     },
+    video: {
+      recordings: [{ type: String }],
+    },
   },
   {
     timestamps: true,
